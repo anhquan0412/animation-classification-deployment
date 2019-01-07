@@ -4,13 +4,10 @@ from starlette.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import uvicorn, aiohttp, asyncio
 from io import BytesIO
-
 from fastai.vision import *
-
 from gradcam import *
 import base64
 
-# model_file_url = 'https://drive.google.com/uc?export=download&id=1j5yM9MZc1h63pXwVoIzay9NMA1-JQGT0'
 model_file_url= 'https://drive.google.com/uc?export=download&id=1_BkMp1DwT_8QwFogLRidSGFDTY9mAaoD'
 model_file_name = 'model'
 classes = ['beauty','castle','hercules','howl','kiki','mermaid','mononoke','mulan','pocahontas','tarzan']
@@ -25,6 +22,7 @@ mv_names= ['Beauty and the Beast',
             'Pocahontas',
             'Tarzan']
 mv_dict = {i:v for i,v in zip(classes,mv_names)}
+
 path = Path(__file__).parent
 
 app = Starlette()
@@ -51,10 +49,6 @@ tasks = [asyncio.ensure_future(setup_learner())]
 learn = loop.run_until_complete(asyncio.gather(*tasks))[0]
 loop.close()
 
-IMG_FILE_SRC = path/'static'/'saved_image.png'
-PREDICTION_FILE_SRC = path/'static'/'predictions.txt'
-GRADCAM_TXT = path/'static'/'gradcam_info.txt'
-
 @app.route("/upload", methods=["POST"])
 async def upload(request):
     data = await request.form()
@@ -65,30 +59,24 @@ async def upload(request):
 def predict_from_bytes(bytes):
     img = open_image(BytesIO(bytes))
     _,_,losses = learn.predict(img)
-    # img.save(IMG_FILE_SRC)
-
-
     predictions = sorted(zip(classes, map(float, losses)), key=lambda p: p[1], reverse=True)
-    fh = open(PREDICTION_FILE_SRC, "w")
-    rs = 'Top 3 predictions:\n'
+
+    rs = '<p>Top 3 predictions:</p>\n'
     for clas,pr in predictions[:3]:
-        rs+=f'-{mv_dict[clas]}: {(pr*100):.2f}%\n'
-    fh.write(rs)
-    fh.close()
-
-    gradcam_txt=''
+        rs+=f'<p> -{mv_dict[clas]}: {(pr*100):.2f}% </p>\n'
     if predictions[0][1] <= 0.70:
-        gradcam_txt+='(Note: Model is not confident with this prediction)\n'
+        rs+='<p>(Note: Model is not confident with this prediction)</p>\n'
 
-    gradcam_txt += f'Which part of the image the model considered for {mv_dict[predictions[0][0]]} prediction:'
-    fh = open(GRADCAM_TXT, "w")
-    fh.write(gradcam_txt)
-    fh.close()
+    rs+=f'<p>Which part of the image the model considered for <b>{mv_dict[predictions[0][0]]}</b> prediction: </p>\n'
+    
     gcam = GradCam.from_one_img(learn,img)
     gcam.plot();
 
-    result_html = path/'static'/'result.html'
-    return HTMLResponse(result_html.open().read())
+    result_html1 = path/'static'/'result1.html'
+    result_html2 = path/'static'/'result2.html'
+    
+    result_html = str(result_html1.open().read() +rs + result_html2.open().read())
+    return HTMLResponse(result_html)
 
 @app.route("/")
 def form(request):
