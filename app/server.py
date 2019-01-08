@@ -14,8 +14,8 @@ classes = ['beauty','castle','hercules','howl','kiki','mermaid','mononoke','mula
 mv_names= ['Beauty and the Beast',
             'Laputa Castle in the Sky',
             'Hercules',
-            'Howl\'s Moving Castle',
-            'Kiki\'s Delivery Service',
+            'Howl''s Moving Castle',
+            'Kiki''s Delivery Service',
             'The Little Mermaid',
             'Princess Mononoke',
             'Mulan',
@@ -75,7 +75,7 @@ def predict_from_bytes(bytes):
     result_html1 = path/'static'/'result1.html'
     result_html2 = path/'static'/'result2.html'
     
-    result_html = str(result_html1.open().read() + rs + result_html2.open().read())
+    result_html = str(result_html1.open().read() +rs + result_html2.open().read())
     return HTMLResponse(result_html)
 
 @app.route("/")
