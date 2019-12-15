@@ -105,8 +105,8 @@ def get_grad_heatmap(learn,xb,y,size):
     target_grad = hook_g.stored[0][0].cpu().numpy()
     
     mean_grad = target_grad.mean(1).mean(1)
-    hmap = (target_act*mean_grad[...,None,None]).mean(0)
-
+    hmap = (target_act*mean_grad[...,None,None]).sum(0)
+    hmap = np.where(hmap >= 0, hmap, 0)
     
     xb_grad = guided_backprop(learn,xb,y) # (3,224,224)        
     #minmax norm the grad
