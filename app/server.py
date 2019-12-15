@@ -54,8 +54,8 @@ loop.close()
 async def upload(request):
     data = await request.form()
     img_bytes = await (data["file"].read())
-    bytes = base64.b64decode(img_bytes)
-    return predict_from_bytes(bytes)
+    # bytes = base64.b64decode(img_bytes)
+    return predict_from_bytes(img_bytes)
 
 def predict_from_bytes(bytes):
     img = open_image(BytesIO(bytes))
