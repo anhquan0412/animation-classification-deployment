@@ -53,6 +53,8 @@ loop.close()
 @app.route("/upload", methods=["POST"])
 async def upload(request):
     data = await request.form()
+    print(data.keys())
+    print(data["img"][:10])
     img_bytes = await (data["img"].read())
     bytes = base64.b64decode(img_bytes)
     return predict_from_bytes(bytes)
